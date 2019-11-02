@@ -245,6 +245,7 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn,bool * append) {
 }	
 
 void DOS_Shell::ParseLine(char * line) {
+	extern char ctty_dev[9];
 	LOG(LOG_EXEC,LOG_DEBUG)("Parsing command line: %s",line);
 	/* Check for a leading @ */
  	if (line[0] == '@') line[0] = ' ';
@@ -279,7 +280,7 @@ void DOS_Shell::ParseLine(char * line) {
 	if (out){
 		LOG_MSG("SHELL:Redirect output to %s",out);
 		if(normalstdout) DOS_CloseFile(1);
-		if(!normalstdin && !in) DOS_OpenFile("con",OPEN_READWRITE,&dummy);
+		if(!normalstdin && !in) DOS_OpenFile(ctty_dev,OPEN_READWRITE,&dummy);
 		bool status = true;
 		/* Create if not exist. Open if exist. Both in read/write mode */
 		if(append) {
@@ -292,7 +293,7 @@ void DOS_Shell::ParseLine(char * line) {
 			status = DOS_OpenFileExtended(out,OPEN_READWRITE,DOS_ATTR_ARCHIVE,0x12,&dummy,&dummy2);
 		}
 		
-		if(!status && normalstdout) DOS_OpenFile("con",OPEN_READWRITE,&dummy); //Read only file, open con again
+		if(!status && normalstdout) DOS_OpenFile(ctty_dev,OPEN_READWRITE,&dummy); //Read only file, open con again
 		if(!normalstdin && !in) DOS_CloseFile(0);
 	}
 	/* Run the actual command */
@@ -314,13 +315,13 @@ void DOS_Shell::ParseLine(char * line) {
 	/* Restore handles */
 	if(in) {
 		DOS_CloseFile(0);
-		if(normalstdin) DOS_OpenFile("con",OPEN_READWRITE,&dummy);
+		if(normalstdin) DOS_OpenFile(ctty_dev,OPEN_READWRITE,&dummy);
 		free(in);
 	}
 	if(out) {
 		DOS_CloseFile(1);
-		if(!normalstdin) DOS_OpenFile("con",OPEN_READWRITE,&dummy);
-		if(normalstdout) DOS_OpenFile("con",OPEN_READWRITE,&dummy);
+		if(!normalstdin) DOS_OpenFile(ctty_dev,OPEN_READWRITE,&dummy);
+		if(normalstdout) DOS_OpenFile(ctty_dev,OPEN_READWRITE,&dummy);
 		if(!normalstdin) DOS_CloseFile(0);
 		free(out);
 	}

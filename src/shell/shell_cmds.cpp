@@ -2080,6 +2080,7 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
         CAPTURE_StopMTWave();
 }
 
+char ctty_dev[9] = "con";
 void DOS_Shell::CMD_CTTY(char * args) {
 	/* NTS: This is written to emulate the simplistic parsing in MS-DOS 6.22 */
 	Bit16u handle;
@@ -2105,5 +2106,6 @@ void DOS_Shell::CMD_CTTY(char * args) {
 		DOS_ForceDuplicateEntry(handle,i);
 	}
 	DOS_CloseFile(handle);
+	strcpy(ctty_dev, args);
 }
 
