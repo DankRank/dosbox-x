@@ -1230,25 +1230,13 @@ bool CSerial::Getchar(Bit8u* data, Bit8u* lsr, bool wait_dsr, Bitu timeout) {
 	double starttime=PIC_FullIndex();
 	// wait for DSR on
 	if(wait_dsr) {
-		while((!(Read_MSR()&0x20))&&(starttime>PIC_FullIndex()-timeout))
+		while((!(Read_MSR()&0x20)))
 			CALLBACK_Idle();
-		if(!(starttime>PIC_FullIndex()-timeout)) {
-#if SERIAL_DEBUG
-			log_ser(dbg_aux,"Getchar status timeout: MSR 0x%x",Read_MSR());
-#endif
-			return false;
-		}
 	}
 	// wait for a byte to arrive
-	while((!((*lsr=(Bit8u)Read_LSR())&0x1))&&(starttime>PIC_FullIndex()-timeout))
+	while((!((*lsr=(Bit8u)Read_LSR())&0x1)))
 		CALLBACK_Idle();
 	
-	if(!(starttime>PIC_FullIndex()-timeout)) {
-#if SERIAL_DEBUG
-		log_ser(dbg_aux,"Getchar data timeout: MSR 0x%x",Read_MSR());
-#endif
-		return false;
-	}
 	*data=(Bit8u)Read_RHR();
 
 #if SERIAL_DEBUG
@@ -1268,21 +1256,15 @@ bool CSerial::Putchar(Bit8u data, bool wait_dsr, bool wait_cts, Bitu timeout) {
 	// wait for DSR+CTS on
 	if(wait_dsr||wait_cts) {
 		if(wait_dsr||wait_cts) {
-			while(((Read_MSR()&0x30)!=0x30)&&(starttime>PIC_FullIndex()-timeout))
+			while(((Read_MSR()&0x30)!=0x30))
 				CALLBACK_Idle();
 		} else if(wait_dsr) {
-			while(!(Read_MSR()&0x20)&&(starttime>PIC_FullIndex()-timeout))
+			while(!(Read_MSR()&0x20))
 				CALLBACK_Idle();
 		} else if(wait_cts) {
-			while(!(Read_MSR()&0x10)&&(starttime>PIC_FullIndex()-timeout))
+			while(!(Read_MSR()&0x10))
 				CALLBACK_Idle();
 		} 
-		if(!(starttime>PIC_FullIndex()-timeout)) {
-#if SERIAL_DEBUG
-			log_ser(dbg_aux,"Putchar timeout: MSR 0x%x",Read_MSR());
-#endif
-			return false;
-		}
 	}
 	Write_THR(data);
 
