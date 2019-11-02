@@ -34,6 +34,48 @@
 
 DOS_Device * Devices[DOS_DEVICES] = {NULL};
 
+#include <fcntl.h>
+#include <unistd.h>
+class device_UNIX : public DOS_Device {
+	int fd;
+public:
+	device_UNIX() {
+		SetName("UNIX");
+		fd = openat(AT_FDCWD,"/dev/tnt0", O_RDWR);
+		LOG_MSG("UNIX: %d\n", fd);
+	};
+	virtual bool Read(Bit8u * data,Bit16u * size) {
+		int sz = read(fd, data, *size);
+		if (sz < 0) {
+			*size = 0;
+			return false;
+		}
+		*size = sz;
+//		LOG(LOG_IOCTL,LOG_NORMAL)("%s:READ",GetName());
+		return true;
+	}
+	virtual bool Write(const Bit8u * data,Bit16u * size) {
+		int sz = write(fd, data, *size);
+		if (sz < 0) {
+			*size = 0;
+			return false;
+		}
+		*size = sz;
+//		LOG(LOG_IOCTL,LOG_NORMAL)("%s:WRITE",GetName());
+		return true;
+	}
+	virtual bool Seek(Bit32u * pos,Bit32u type) {
+        (void)type;
+        (void)pos;
+//		LOG(LOG_IOCTL,LOG_NORMAL)("%s:SEEK",GetName());
+		return true;
+	}
+	virtual bool Close() { return true; }
+	virtual Bit16u GetInformation(void) { return 0x8093; }
+	virtual bool ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
+	virtual bool WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
+};
+
 class device_NUL : public DOS_Device {
 public:
 	device_NUL() { SetName("NUL"); };
@@ -257,6 +299,7 @@ void DOS_SetupDevices(void) {
 	DOS_Device * newdev3;
 	newdev3=new device_PRN();
 	DOS_AddDevice(newdev3);
+	DOS_AddDevice(new device_UNIX());
 }
 
 /* PC-98 INT DC CL=0x10 AH=0x00 DL=cjar */
